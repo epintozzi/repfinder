@@ -1,10 +1,24 @@
 require 'pry'
+require 'bunny'
 
 class Printer
   attr_reader :rep_data
 
   def initialize(rep_data)
     @rep_data = rep_data
+    @connection = Bunny.new
+  end
+
+  def bunny_connection
+    @connection.start
+    @channel = @connection.create_channel
+    @queue = @channel.queue("rep.info")
+  end
+
+  def subscription
+    @queue.subscribe do |delivery_info, metadata, payload|
+      message = JSON.parse(payload)
+    end
   end
 
   def filename
