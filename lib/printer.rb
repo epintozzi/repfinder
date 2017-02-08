@@ -1,10 +1,11 @@
 require 'pry'
 require 'bunny'
+require 'json'
 
 class Printer
   attr_reader :rep_data
 
-  def initialize(rep_data)
+  def initialize#(rep_data)
     @rep_data = rep_data
     @connection = Bunny.new
   end
@@ -12,12 +13,14 @@ class Printer
   def bunny_connection
     @connection.start
     @channel = @connection.create_channel
-    @queue = @channel.queue("rep.info")
+    @queue_receive = @channel.queue("rep.info")
   end
 
   def subscription
-    @queue.subscribe do |delivery_info, metadata, payload|
-      message = JSON.parse(payload)
+    bunny_connection
+    @queue_receive.subscribe do |delivery_info, metadata, payload|
+      # binding.pry
+    puts message = JSON.parse(payload)
     end
   end
 
@@ -43,7 +46,13 @@ class Printer
     end
   end
 
+  # loop do
+  # end
 end
+
+p = Printer.new
+binding.pry
+p.subscription
 
 # hash = {
 #   id: '123',
