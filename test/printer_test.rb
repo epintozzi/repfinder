@@ -4,7 +4,7 @@ require './lib/printer'
 class PrinterTest < Minitest::Test
 
   def test_it_initializes
-    p = Printer.new(hash)
+    p = Printer.new
     assert p
   end
 
@@ -23,11 +23,12 @@ class PrinterTest < Minitest::Test
         }
       }
     }
-    p = Printer.new(hash)
-    assert_equal '00123_casimir_jeff.txt', p.filename
+    p = Printer.new
+    assert_equal '00123_casimir_jeff.txt', p.filename(hash)
   end
 
   def test_it_takes_a_hash
+    skip
     hash = {
       id: '123',
       first: 'Jeff',
@@ -47,7 +48,7 @@ class PrinterTest < Minitest::Test
   end
 
   def test_it_writes_to_a_file
-    skip
+
     hash = {
       id: '123',
       first: 'Jeff',
@@ -62,8 +63,8 @@ class PrinterTest < Minitest::Test
         }
       }
     }
-    p = Printer.new(hash)
-    assert
+    p = Printer.new
+    assert p.write_file(hash)
   end
 
 end

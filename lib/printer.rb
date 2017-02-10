@@ -3,11 +3,12 @@ require 'bunny'
 require 'json'
 
 class Printer
-  attr_reader :rep_data
+  attr_reader :queue_receive
 
-  def initialize#(rep_data)
-    @rep_data = rep_data
+  def initialize
     @connection = Bunny.new
+    bunny_connection
+    subscription
   end
 
   def bunny_connection
@@ -17,71 +18,55 @@ class Printer
   end
 
   def subscription
-    bunny_connection
     @queue_receive.subscribe do |delivery_info, metadata, payload|
-      # binding.pry
-    puts message = JSON.parse(payload)
+      puts "Got #{payload}"
+      message = JSON.parse(payload)
+      puts message
+      write_file(message)
     end
   end
 
-  def filename
-    id = @rep_data[:id].rjust(5, "0")
-    last = @rep_data[:last].downcase
-    first= @rep_data[:first].downcase
+  def filename(message)
+    id = message["id"].rjust(5, "0")
+    last = message["last"].downcase
+    first = message["first"].downcase
     return "#{id}_#{last}_#{first}.txt"
   end
 
-  def write_file
-    file_name = filename
+  def write_file(message)
+    file_name = filename(message)
     target = open(file_name, 'w')
-    header = "=== #{@rep_data[:first]} #{@rep_data[:last]} ==="
+    header = "=== #{message["first"]} #{message["last"]} ==="
     target.write(header)
     target.write("\n")
 
-    @congress_info = @rep_data[:congress]
+    @congress_info = message["congress"]
     @congress_info.each do |line|
-      info = "#{line[1][:title]} #{line[1][:first]} #{line[1][:last]} (#{line[1][:party]}): #{line[1][:phone]}"
+      info = "#{line[1]["title"]} #{line[1]["first"]} #{line[1]["last"]} (#{line[1]["party"]}): #{line[1]["phone"]}"
       target.write(info)
       target.write("\n")
     end
+    target.close
   end
-
-  # loop do
-  # end
 end
 
-p = Printer.new
-binding.pry
-p.subscription
-
 # hash = {
-#   id: '123',
-#   first: 'Jeff',
-#   last: 'Casimir',
+#   id: '26',
+#   first: 'Erin',
+#   last: 'Pintozzi',
 #   congress: {
-#     rep_1: {
+#     rep: {
 #       title: 'Sen',
 #       first: 'Betty',
 #       last: 'White',
 #       party: 'A',
 #       phone: '123-456-7890',
-#     },
-#     rep_2: {
-#       title: 'Sen',
-#       first: 'Tom',
-#       last: 'Hanks',
-#       party: 'A',
-#       phone: '123-456-7890',
 #     }
 #   }
 # }
-#
-# p = Printer.new(hash)
-# p.write_file
 
-# Desired Format
-# === Jeff Casimir ===
-# Sen Cory Gardner (R): 202-224-5941
-# Rep Diana DeGette (D): 202-225-4431
-# Rep Mike Coffman (R): 202-225-7882
-# Sen Michael Bennet (D): 202-224-5852
+p = Printer.new
+loop do
+  sleep 0.1
+end
+# p.write_file(hash)

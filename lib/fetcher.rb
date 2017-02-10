@@ -6,22 +6,22 @@ class Fetcher
 
   def initialize
     @connection = Bunny.new
+    bunny_connection
   end
 
   def bunny_connection
     @connection.start
     @channel = @connection.create_channel
     @queue_send = @channel.queue("rep.info")
-    # binding.pry
     json_hash = rep_hash.to_json
     @queue_send.publish(json_hash)
   end
 
   def rep_hash
-    return hash = {
+    {
      id: '123',
-     first: 'Jeff',
-     last: 'Casimir',
+     first: 'Bob',
+     last: 'Smith',
      congress: {
        rep_1: {
          title: 'Sen',
@@ -40,12 +40,6 @@ class Fetcher
      }
    }
   end
-
-
-  # loop do
-  #
-  # end
 end
 
 p = Fetcher.new
-p.bunny_connection
